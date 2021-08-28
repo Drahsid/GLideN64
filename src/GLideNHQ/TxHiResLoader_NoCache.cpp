@@ -7,7 +7,6 @@
 std::vector<tx_wstring> texture_paths;
 
 void AddTexturePath(tx_wstring path) {
-	printf("Adding texture path %ls\n", path.c_str());
 	texture_paths.push_back(path);
 }
 
@@ -107,13 +106,11 @@ bool TxHiResLoader_NoCache::get(Checksum checksum, GHQTexInfo* info) {
 }
 
 bool TxHiResLoader_NoCache::reload() {
-	printf("Reloading textures?\n");
     _clear();
     return _createFileIndex(true);
 }
 
 bool TxHiResLoader_NoCache::_createFileIndex(bool update) {
-    printf("_createFileIndex!\n");
 	/* don't display anything during an update,
 	*	it causes flicker on i.e an ssd
 	*/
@@ -122,7 +119,6 @@ bool TxHiResLoader_NoCache::_createFileIndex(bool update) {
 	}
 
     int index;
-	printf("ident is %ls, identc is %s\n", _ident.c_str(), _identc);
     for (index = 0; index < texture_paths.size(); index++) {
 		_createFileIndexInDir(texture_paths.at(index) + OSAL_DIR_SEPARATOR_STR + wst("UNIVERSAL"), update, "UNIVERSAL");
         _createFileIndexInDir(texture_paths.at(index) + OSAL_DIR_SEPARATOR_STR + _ident, update, _identc);
@@ -134,7 +130,6 @@ bool TxHiResLoader_NoCache::_createFileIndex(bool update) {
 bool TxHiResLoader_NoCache::_createFileIndexInDir(tx_wstring directory, bool update, char* identc) {
 	/* find it on disk */
 	if (!osal_path_existsW(directory.c_str())) {
-		printf("Directory does not exist? %ls", directory.c_str());
 		return false;
 	}
 
@@ -187,9 +182,8 @@ bool TxHiResLoader_NoCache::_createFileIndexInDir(tx_wstring directory, bool upd
 		else {
 			length = TxHiResLoader::checkFileName(identc, entry.fname, &chksum, &palchksum, &entry.fmt, &entry.siz);
 		}
-		
+
 		if (length == 0) {
-			printf("invalid file name %s\n", entry.fname);
 			/* invalid file name, skip it */
 			continue;
 		}
@@ -210,11 +204,9 @@ bool TxHiResLoader_NoCache::_createFileIndexInDir(tx_wstring directory, bool upd
 			 * so to maintain backwards compatability, we won't either
 			 */
 			DBG_INFO(80, wst("TxNoCache::_createFileIndexInDir: failed to add cksum:%08X %08X file:%ls\n"), chksum, palchksum, texturefilename.c_str());
-			printf("TxNoCache::_createFileIndexInDir: failed to add cksum:%08X %08X file:%ls\n", chksum, palchksum, texturefilename.c_str());
 		}
         else {
 			DBG_INFO(80, wst("TxNoCache::_createFileIndexInDir: added cksum:%08X %08X file:%ls\n"), chksum, palchksum, texturefilename.c_str());
-            printf("TxNoCache::_createFileIndexInDir: added cksum:%08X %08X file:%ls\n", chksum, palchksum, texturefilename.c_str());
 		}
 
 	} while (foundfilename != nullptr);
