@@ -47,6 +47,7 @@ private:
 	tx_wstring _getFileName() const override;
 	int _getConfig() const override;
   bool _load(boolean replace);
+  bool __load(boolean replace, tx_wstring dir_path);
 
 public:
   ~TxHiResCache();

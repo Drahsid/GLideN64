@@ -52,6 +52,9 @@
     <ClCompile Include="..\..\src\GLideNHQ\TextureFilters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\GLideNHQ\TxHiResLoader_NoCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">

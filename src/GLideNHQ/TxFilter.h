@@ -43,17 +43,19 @@ private:
   int _maxwidth;
   int _maxheight;
   int _maxbpp;
-  int _options;
   int _cacheSize;
   tx_wstring _ident;
   tx_wstring _dumpPath;
   TxQuantize *_txQuantize;
   TxTexCache *_txTexCache;
-  TxHiResLoader *_txHiResLoader;
   TxImage *_txImage;
   boolean _initialized;
   void clear();
 public:
+  TxHiResLoader *_txHiResLoader;
+  bool shouldReloadTextures = false;
+  int _options;
+
   ~TxFilter();
   TxFilter(int maxwidth,
 		   int maxheight,
@@ -80,5 +82,7 @@ public:
   boolean reloadhirestex();
   void dumpcache();
 };
+
+extern TxFilter* txFilter;
 
 #endif /* __TXFILTER_H__ */

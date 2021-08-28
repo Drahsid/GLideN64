@@ -238,6 +238,10 @@ void VI_UpdateScreen()
 	g_debugger.checkDebugState();
 
 	checkHotkeys();
+	if (txfilter_doreloadhirestexcheck()) {
+		config.textureFilter.txHiresEnable = true;
+		textureCache().clear();
+	}
 
 	bool bVIUpdated = false;
 	if (*REG.VI_ORIGIN != VI.lastOrigin) {

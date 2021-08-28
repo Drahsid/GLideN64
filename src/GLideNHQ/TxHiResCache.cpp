@@ -36,6 +36,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
+#include <algorithm>
 
 #define HIRES_DUMP_ENABLED (FILE_HIRESTEXCACHE|DUMP_HIRESTEXCACHE)
 
@@ -112,16 +114,8 @@ boolean TxHiResCache::_HiResTexPackPathExists() const
 	return osal_path_existsW(dir_path.c_str());
 }
 
-bool TxHiResCache::_load(boolean replace) /* 0 : reload, 1 : replace partial */
+bool TxHiResCache::__load(boolean replace, tx_wstring dir_path)
 {
-	if (_texPackPath.empty() || _ident.empty())
-		return false;
-
-	if (!replace)
-		TxCache::clear();
-
-	tx_wstring dir_path(_texPackPath);
-
 	switch (getOptions() & HIRESTEXTURES_MASK) {
 	case RICE_HIRESTEXTURES:
 		INFO(80, wst("-----\n"));
@@ -147,6 +141,27 @@ bool TxHiResCache::_load(boolean replace) /* 0 : reload, 1 : replace partial */
 		return res == resOk;
 	}
 	return false;
+}
+
+bool TxHiResCache::_load(boolean replace) /* 0 : reload, 1 : replace partial */
+{
+	tx_wstring dir_path(_texPackPath);
+	bool result;
+	int index;
+
+	if (!replace) {
+		TxCache::clear();
+	}
+
+	// initial texture path (the one chosen by the user)
+	if (_texPackPath.empty() || _ident.empty()) {
+		result = false;
+	}
+	else {
+		result = __load(replace, dir_path);
+	}
+
+	return result;
 }
 
 bool TxHiResCache::reload()
@@ -305,7 +320,6 @@ TxHiResCache::LoadResult TxHiResCache::_loadHiResTextures(const wchar_t * dir_pa
 			result = resError;
 			break;
 		}
-
 	} while (foundfilename != nullptr);
 
 	osal_search_dir_close(dir);

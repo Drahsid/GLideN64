@@ -108,6 +108,19 @@ txfilter_dumpcache(void)
 	  txFilter->dumpcache();
 }
 
+TAPI boolean TAPIENTRY
+txfilter_doreloadhirestexcheck(void) {
+  if (txFilter) {
+    if (txFilter->shouldReloadTextures) {
+      txFilter->shouldReloadTextures = false;
+      txFilter->_options |= HIRESTEXTURES_MASK;
+      if (txFilter->reloadhirestex()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 #ifdef __cplusplus
 }

@@ -9,7 +9,7 @@ txfilter_init(int maxwidth, int maxheight, int maxbpp, int options, int cachesiz
 }
 
 TAPI void TAPIENTRY
-txfilter_shutdown(void) 
+txfilter_shutdown(void)
 {}
 
 TAPI boolean TAPIENTRY
@@ -46,3 +46,7 @@ txfilter_reloadhirestex()
 TAPI void TAPIENTRY
 txfilter_dumpcache(void)
 {}
+
+TAPI boolean txfilter_doreloadhirestexcheck(void) {
+	return false;
+}

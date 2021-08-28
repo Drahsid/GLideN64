@@ -35,6 +35,7 @@
 #include "TextureFilters.h"
 #include "TxDbg.h"
 #include "bldno.h"
+#include "TxHiResLoader_NoCache.h"
 
 void TxFilter::clear()
 {
@@ -82,8 +83,8 @@ TxFilter::TxFilter(int maxwidth,
 			_options   == options   &&
 			_cacheSize == cachesize) return;
 	//  clear(); /* gcc does not allow the destructor to be called */
-	if (texCachePath == nullptr || texDumpPath == nullptr || texPackPath == nullptr)
-		return;
+	/*if (texCachePath == nullptr || texDumpPath == nullptr || texPackPath == nullptr)
+		return;*/
 
 	/* shamelessness :P this first call to the debug output message creates
    * a file in the executable directory. */
@@ -156,8 +157,10 @@ TxFilter::TxFilter(int maxwidth,
 		wcscat(fullTexPackPath, OSAL_DIR_SEPARATOR_STR);
 		wcscat(fullTexPackPath, ident);
 		_txHiResLoader = new TxHiResNoCache(_maxwidth, _maxheight, _maxbpp, _options, texCachePath, texPackPath, fullTexPackPath, _ident.c_str(), callback);
-	} else {
-		_txHiResLoader = new TxHiResCache(_maxwidth, _maxheight, _maxbpp, _options, texCachePath, texPackPath, _ident.c_str(), callback);
+	}
+	else {
+		//_txHiResLoader = new TxHiResCache(_maxwidth, _maxheight, _maxbpp, _options, texCachePath, texPackPath, _ident.c_str(), callback);
+		_txHiResLoader = new TxHiResLoader_NoCache(_maxwidth, _maxheight, _maxbpp, _options, texCachePath, texPackPath, _ident.c_str(), callback);
 	}
 
 	if (_txHiResLoader->empty())

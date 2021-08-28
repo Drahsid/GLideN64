@@ -242,6 +242,9 @@ txfilter_reloadhirestex();
 TAPI void TAPIENTRY
 txfilter_dumpcache(void);
 
+TAPI boolean TAPIENTRY
+txfilter_doreloadhirestexcheck(void);
+
 #ifdef __cplusplus
 }
 #endif

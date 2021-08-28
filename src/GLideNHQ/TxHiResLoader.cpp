@@ -158,6 +158,131 @@ uint32_t TxHiResLoader::checkFileName(char* ident, char* filename,
 	return length;
 }
 
+uint32_t TxHiResLoader::checkFileNameNoIdent(char* filename,
+	uint32_t* pChksum, uint32_t* pPalchksum,
+	uint32_t* pFmt, uint32_t* pSiz)
+{
+#define CRCFMTSIZ_LEN 13
+#define CRCWILDCARD_LEN 15
+#define PALCRC_LEN 9
+
+	const char* strName;
+	const char* pfilename;
+	uint32_t length = 0, filename_type = 0;
+	bool hasWildcard = false;
+	const char supported_ends[][20] = {
+		"all.png",
+		"all.dds",
+#ifdef OS_WINDOWS
+		"allcibyrgba.png",
+		"allcibyrgba.dds",
+		"cibyrgba.png",
+		"cibyrgba.dds",
+#else
+		"allciByRGBA.png",
+		"allciByRGBA.dds",
+		"ciByRGBA.png",
+		"ciByRGBA.dds",
+#endif
+		"rgb.png",
+		"rgb.bmp",
+		"a.png",
+		"a.bmp"
+	};
+
+	pfilename = filename + strlen(filename) - 4;
+
+	if (strcmp(pfilename, ".png") &&
+		strcmp(pfilename, ".bmp") &&
+		strcmp(pfilename, ".dds")) {
+#if !DEBUG
+		INFO(80, wst("-----\n"));
+		INFO(80, wst("file: %s\n"), filename);
+#endif
+		INFO(80, wst("Error: not png or bmp or dds!\n"));
+		return 0;
+	}
+
+	strName = pfilename;
+
+	/* wildcard support */
+	if (strchr(strName, '$')) {
+		if (sscanf(strName, "#%08X#%01X#%01X#$", pChksum, pFmt, pSiz) == 3) {
+			filename_type = 1;
+			length = CRCWILDCARD_LEN;
+		}
+		else if (sscanf(strName, "#$#%01X#%01X#%08X", pFmt, pSiz, pPalchksum) == 3) {
+			filename_type = 2;
+			length = CRCWILDCARD_LEN;
+		}
+
+		hasWildcard = (length != 0);
+	}
+	else {
+		if (sscanf(strName, "#%08X#%01X#%01X#%08X", pChksum, pFmt, pSiz, pPalchksum) == 4) {
+			filename_type = 3;
+			length = CRCFMTSIZ_LEN + PALCRC_LEN;
+		}
+		else if (sscanf(strName, "#%08X#%01X#%01X", pChksum, pFmt, pSiz) == 3) {
+			filename_type = 4;
+			length = CRCFMTSIZ_LEN;
+		}
+	}
+
+	/* try to re-create string and match it */
+	bool supportedFilename = false;
+	char test_filename[MAX_PATH];
+	for (int i = 0; length && i < (sizeof(supported_ends) / sizeof(supported_ends[0])); i++) {
+		char* end = (char*)supported_ends[i];
+
+		switch (filename_type)
+		{
+		default:
+		case 1:
+			sprintf(test_filename, "#%08X#%01X#%01X#$_%s", *pChksum, *pFmt, *pSiz, end);
+			break;
+		case 2:
+			sprintf(test_filename, "#$#%01X#%01X#%08X_%s", *pFmt, *pSiz, *pPalchksum, end);
+			break;
+		case 3:
+			sprintf(test_filename, "#%08X#%01X#%01X#%08X_%s", *pChksum, *pFmt, *pSiz, *pPalchksum, end);
+			break;
+		case 4:
+			sprintf(test_filename, "#%08X#%01X#%01X_%s", *pChksum, *pFmt, *pSiz, end);
+			break;
+		}
+
+		/* lowercase on windows */
+		CORRECTFILENAME(test_filename);
+
+		/* when it matches, break */
+		if (strcmp(test_filename, filename) == 0) {
+			supportedFilename = true;
+			break;
+		}
+	}
+
+	if (!supportedFilename || !length) {
+#if !DEBUG
+		INFO(80, wst("-----\n"));
+		INFO(80, wst("file: %s\n", filename));
+#endif
+		INFO(80, wst("Error: not Rice texture naming convention!\n"));
+		return 0;
+	}
+
+	if (!*pChksum && !hasWildcard) {
+#if !DEBUG
+		INFO(80, wst("-----\n"));
+		INFO(80, wst("file: %s\n"), filename);
+#endif
+		INFO(80, wst("Error: crc32 = 0!\n"));
+		return 0;
+	}
+
+	return length;
+}
+
 uint8_t* TxHiResLoader::loadFileInfoTex(char* fname, 
 	int siz, int* pWidth, int* pHeight, 
 	uint32_t fmt,

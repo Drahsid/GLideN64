@@ -249,24 +249,7 @@ void setDepthClearColor()
 void RSP_Init()
 {
 	if (RDRAMSize == 0) {
-#ifdef OS_WINDOWS
-		// Calculate RDRAM size by intentionally causing an access violation
-		u32 test;
-		try
-		{
-			test = RDRAM[0x007FFFFF] + 1;
-		}
-		catch (...)
-		{
-			test = 0;
-		}
-		if (test > 0)
-			RDRAMSize = 0x7FFFFF;
-		else
-			RDRAMSize = 0x3FFFFF;
-#else // OS_WINDOWS
-		RDRAMSize = 1024 * 1024 * 8 - 1;
-#endif // OS_WINDOWS
+		RDRAMSize = 0x03E00000 - 1;
 	}
 
 	RSP.uc_start = RSP.uc_dstart = 0;
@@ -349,4 +332,18 @@ void RSP_Init()
 	api().FindPluginPath(RSP.pluginpath);
 
 	RSP_SetDefaultState();
+}
+
+u32 RSP_SegmentToPhysical(u32 segaddr) {
+	u32 addr = 0;
+	if (segaddr < 0x80000000) {
+		addr = ((gSP.segment[RSP_SegmentLower(segaddr)] + (RSP_SegmentUpper(segaddr) * 0x01000000) + (segaddr & 0x00FFFFFF)) & 0x0FFFFFFF);
+		if (RSP_SegmentUpper(segaddr) != 0) {
+			printf("16 mb index %d, segment: %X, result %X\n", RSP_SegmentUpper(segaddr), RSP_SegmentLower(segaddr), addr);
+		}
+	}
+	else {
+		addr = segaddr & 0x0FFFFFFF;
+	}
+	return addr;
 }

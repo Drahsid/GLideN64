@@ -768,7 +768,7 @@ void TextureCache::_loadBackground(CachedTexture *pTexture)
 	pSwapped = (u8*)malloc(numBytes);
 	if (pSwapped == nullptr)
 		return;
-	UnswapCopyWrap(RDRAM, gSP.bgImage.address, pSwapped, 0, RDRAMSize, numBytes);
+	UnswapCopyWrap(RDRAM, gSP.bgImage.address, pSwapped, 0, 0x0FFFFFFF, numBytes); //@Fix RDRam mask
 	pDest = (u32*)malloc(pTexture->textureBytes);
 	if (pDest == nullptr) {
 		free(pSwapped);
