@@ -334,7 +334,7 @@ void RSP_Init()
 	RSP_SetDefaultState();
 }
 
-u32 RSP_SegmentToPhysical(u32 segaddr) {
+/*u32 RSP_SegmentToPhysical(u32 segaddr) {
 	u32 addr = 0;
 	if (segaddr < 0x80000000) {
 		addr = ((gSP.segment[RSP_SegmentLower(segaddr)] + (RSP_SegmentUpper(segaddr) * 0x01000000) + (segaddr & 0x00FFFFFF)) & 0x0FFFFFFF);
@@ -346,4 +346,4 @@ u32 RSP_SegmentToPhysical(u32 segaddr) {
 		addr = segaddr & 0x0FFFFFFF;
 	}
 	return addr;
-}
+}*/

@@ -31,7 +31,9 @@ extern u32 rectDepthBufferCopyFrame;
 //@FIX RDRam Mask
 //#define RSP_SegmentToPhysical( segaddr ) ((gSP.segment[RSP_SegmentLower(segaddr)] + (RSP_SegmentUpper(segaddr) * 0x01000000) + (segaddr & 0x00FFFFFF)) & 0x0FFFFFFF);
 
-u32 RSP_SegmentToPhysical(u32 segaddr);
+#define RSP_SegmentToPhysical( segaddr ) ((gSP.segment[(segaddr >> 24) & 0x0F] + (segaddr & 0x00FFFFFF)) & 0x00FFFFFF)
+
+//u32 RSP_SegmentToPhysical(u32 segaddr);
 
 void RSP_Init();
 void RSP_ProcessDList();

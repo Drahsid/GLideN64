@@ -3,6 +3,7 @@
 #include "TxDbg.h"
 #include "Ext_TxFilter.h"
 #include <osal_files.h>
+#include <cstring>
 
 std::vector<tx_wstring> texture_paths;
 

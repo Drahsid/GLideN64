@@ -14,6 +14,7 @@ set(GLideNHQ_SOURCES
   TxFilterExport.cpp
   TxHiResLoader.cpp
   TxHiResCache.cpp
+  TxHiResLoader_NoCache.cpp
   TxHiResNoCache.cpp
   TxImage.cpp
   TxQuantize.cpp
