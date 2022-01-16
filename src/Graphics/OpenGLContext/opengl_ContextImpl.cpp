@@ -13,7 +13,8 @@
 #endif
 #include "opengl_ColorBufferReaderWithReadPixels.h"
 #include "opengl_Utils.h"
-#include "GLSL/glsl_CombinerProgramBuilder.h"
+#include "GLSL/glsl_CombinerProgramBuilderAccurate.h"
+#include "GLSL/glsl_CombinerProgramBuilderFast.h"
 #include "GLSL/glsl_SpecialShadersFactory.h"
 #include "GLSL/glsl_ShaderStorage.h"
 
@@ -203,11 +204,6 @@ void ContextImpl::clearDepthBuffer()
 	CachedDepthMask * depthMask = m_cachedFunctions->getCachedDepthMask();
 	enableScissor->enable(false);
 
-	if (m_glInfo.renderer == Renderer::PowerVR) {
-		depthMask->setDepthMask(false);
-		glClear(GL_DEPTH_BUFFER_BIT);
-	}
-
 	depthMask->setDepthMask(true);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -276,8 +272,13 @@ s32 ContextImpl::getMaxTextureSize() const
 f32 ContextImpl::getMaxAnisotropy() const
 {
 	GLfloat maxInisotropy = 0.0f;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxInisotropy);
-	return maxInisotropy;
+
+	if (m_glInfo.anisotropic_filtering) {
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxInisotropy);
+		return maxInisotropy;
+	} else {
+		return 0.0f;
+	}
 }
 
 void ContextImpl::bindImageTexture(const graphics::Context::BindImageTextureParameters & _params)
@@ -403,7 +404,13 @@ void ContextImpl::resetCombinerProgramBuilder()
 {
 	if (!isCombinerProgramBuilderObsolete())
 		return;
-	m_combinerProgramBuilder.reset(new glsl::CombinerProgramBuilder(m_glInfo, m_cachedFunctions->getCachedUseProgram()));
+
+	if (config.generalEmulation.enableInaccurateTextureCoordinates) {
+		m_combinerProgramBuilder = std::make_unique<glsl::CombinerProgramBuilderFast>(m_glInfo, m_cachedFunctions->getCachedUseProgram());
+	} else {
+		m_combinerProgramBuilder = std::make_unique<glsl::CombinerProgramBuilderAccurate>(m_glInfo, m_cachedFunctions->getCachedUseProgram());
+	}
+
 	m_specialShadersFactory.reset(new glsl::SpecialShadersFactory(m_glInfo,
 		m_cachedFunctions->getCachedUseProgram(),
 		m_combinerProgramBuilder->getVertexShaderHeader(),

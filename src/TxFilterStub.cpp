@@ -1,4 +1,4 @@
-#include "GLideNHQ/Ext_TxFilter.h"
+#include "GLideNHQ/TxFilterExport.h"
 
 TAPI boolean TAPIENTRY
 txfilter_init(int maxwidth, int maxheight, int maxbpp, int options, int cachesize,

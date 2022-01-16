@@ -816,7 +816,7 @@ void GraphicsDrawer::drawScreenSpaceTriangle(u32 _numVtx, graphics::DrawModePara
 	m_dmaVerticesNum = 0;
 
 	if (config.frameBufferEmulation.enable != 0) {
-		const f32 maxY = renderScreenSpaceTriangles(m_dmaVertices.data(), _numVtx);
+		const f32 maxY = renderScreenSpaceTriangles(m_dmaVertices.data(), _numVtx, _mode);
 		frameBufferList().setBufferChanged(maxY);
 		if (config.frameBufferEmulation.copyDepthToRDRAM == Config::cdSoftwareRender &&
 			gDP.otherMode.depthUpdate != 0) {
@@ -1275,40 +1275,45 @@ void GraphicsDrawer::drawTexturedRect(const TexturedRectParams & _params)
 		offsetY = (_params.lry - _params.uly) * _params.dtdy;
 	}
 
-	for (u32 t = 0; t < 2; ++t) {
-		if (pCurrentCombiner->usesTile(t) && cache.current[t] && gSP.textureTile[t]) {
-			const f32 uls = _FIXED2FLOAT(_params.s, 5);
-			const f32 lrs = uls + offsetX;
-			const f32 ult = _FIXED2FLOAT(_params.t, 5);
-			const f32 lrt = ult + offsetY;
+	if (config.generalEmulation.enableInaccurateTextureCoordinates == 0u) {
+		// Accurate texture path
+		texST[0].s0 = _FIXED2FLOAT(_params.s, 5);
+		texST[0].s1 = texST[0].s0 + offsetX;
+		texST[0].t0 = _FIXED2FLOAT(_params.t, 5);
+		texST[0].t1 = texST[0].t0 + offsetY;
+	} else {
+		// Fast texture path
+		for (u32 t = 0; t < 2; ++t) {
+			if (pCurrentCombiner->usesTile(t) && cache.current[t] && gSP.textureTile[t]) {
+				f32 shiftScaleS = 1.0f;
+				f32 shiftScaleT = 1.0f;
 
-			texST[t].s0 = uls;
-			texST[t].s1 = lrs;
-			texST[t].t0 = ult;
-			texST[t].t1 = lrt;
+				s16 S = _params.s;
+				shiftScaleS = calcShiftScaleS(*gSP.textureTile[t], &S);
+				const f32 uls = _FIXED2FLOAT(S, 5);
+				const f32 lrs = uls + offsetX * shiftScaleS;
 
-			if (cache.current[t]->frameBufferTexture != CachedTexture::fbMultiSample) {
-				Context::TexParameters texParams;
+				s16 T = _params.t;
+				shiftScaleT = calcShiftScaleT(*gSP.textureTile[t], &T);
+				const f32 ult = _FIXED2FLOAT(T, 5);
+				const f32 lrt = ult + offsetY * shiftScaleT;
 
-				if ((cache.current[t]->mirrorS == 0 && cache.current[t]->maskS == 0 &&
-					(texST[t].s0 < texST[t].s1 ?
-					texST[t].s0 >= 0.0f && texST[t].s1 <= static_cast<f32>(cache.current[t]->width) :
-					texST[t].s1 >= 0.0f && texST[t].s0 <= static_cast<f32>(cache.current[t]->width)))
-					|| (cache.current[t]->maskS == 0 && (texST[t].s0 < -1024.0f || texST[t].s1 > 1023.99f)))
-					texParams.wrapS = textureParameters::WRAP_CLAMP_TO_EDGE;
+				texST[t].s0 = uls - gSP.textureTile[t]->fuls;
+				texST[t].s1 = lrs - gSP.textureTile[t]->fuls;
+				texST[t].t0 = ult - gSP.textureTile[t]->fult;
+				texST[t].t1 = lrt - gSP.textureTile[t]->fult;
 
-				if (cache.current[t]->mirrorT == 0 &&
-					(texST[t].t0 < texST[t].t1 ?
-					texST[t].t0 >= 0.0f && texST[t].t1 <= static_cast<f32>(cache.current[t]->height) :
-					texST[t].t1 >= 0.0f && texST[t].t0 <= static_cast<f32>(cache.current[t]->height)))
-					texParams.wrapT = textureParameters::WRAP_CLAMP_TO_EDGE;
-
-				if (texParams.wrapS.isValid() || texParams.wrapT.isValid()) {
-					texParams.handle = cache.current[t]->name;
-					texParams.target = textureTarget::TEXTURE_2D;
-					texParams.textureUnitIndex = textureIndices::Tex[t];
-					gfxContext.setTextureParameters(texParams);
+				if (cache.current[t]->frameBufferTexture != CachedTexture::fbNone) {
+					texST[t].s0 = cache.current[t]->offsetS + texST[t].s0;
+					texST[t].t0 = cache.current[t]->offsetT + texST[t].t0;
+					texST[t].s1 = cache.current[t]->offsetS + texST[t].s1;
+					texST[t].t1 = cache.current[t]->offsetT + texST[t].t1;
 				}
+
+				texST[t].s0 *= cache.current[t]->scaleS;
+				texST[t].t0 *= cache.current[t]->scaleT;
+				texST[t].s1 *= cache.current[t]->scaleS;
+				texST[t].t1 *= cache.current[t]->scaleT;
 			}
 		}
 	}

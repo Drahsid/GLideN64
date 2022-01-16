@@ -167,6 +167,11 @@ void GLInfo::init() {
 		}
 	}
 
+	if (renderer == Renderer::PowerVR) {
+		config.frameBufferEmulation.forceDepthBufferClear = 1;
+		config.generalEmulation.enableFragmentDepthWrite = 0;
+	}
+
 	depthTexture = !isGLES2 || Utils::isExtensionSupported(*this, "GL_OES_depth_texture");
 	noPerspective = Utils::isExtensionSupported(*this, "GL_NV_shader_noperspective_interpolation");
 
@@ -180,6 +185,7 @@ void GLInfo::init() {
 	ext_fetch_arm =  Utils::isExtensionSupported(*this, "GL_ARM_shader_framebuffer_fetch") && !ext_fetch;
 
 	dual_source_blending = !isGLESX || (Utils::isExtensionSupported(*this, "GL_EXT_blend_func_extended") && !isAnyAdreno);
+	anisotropic_filtering = Utils::isExtensionSupported(*this, "GL_EXT_texture_filter_anisotropic");
 
 #ifdef OS_ANDROID
 	eglImage = eglImage &&
@@ -222,6 +228,8 @@ void GLInfo::init() {
 		ptrDebugMessageControl = (PFNGLDEBUGMESSAGECONTROLPROC) eglGetProcAddress("glDebugMessageControlKHR");
 	}
 #endif
+
+
 
 #ifdef GL_DEBUG
 	glDebugMessageCallback(on_gl_error, nullptr);
