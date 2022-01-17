@@ -34,7 +34,6 @@
 #include "TxFilter.h"
 #include "TextureFilters.h"
 #include "TxDbg.h"
-#include "bldno.h"
 #include "TxHiResLoader_NoCache.h"
 
 void TxFilter::clear()

@@ -1,7 +1,6 @@
 #include "TxHiResLoader_NoCache.h"
 
 #include "TxDbg.h"
-#include "Ext_TxFilter.h"
 #include <osal_files.h>
 #include <cstring>
 
@@ -121,7 +120,7 @@ bool TxHiResLoader_NoCache::_createFileIndex(bool update) {
 
     int index;
     for (index = 0; index < texture_paths.size(); index++) {
-		_createFileIndexInDir(texture_paths.at(index) + OSAL_DIR_SEPARATOR_STR + wst("UNIVERSAL"), update, "UNIVERSAL");
+		_createFileIndexInDir(texture_paths.at(index) + OSAL_DIR_SEPARATOR_STR + wst("UNIVERSAL"), update, (char*)"UNIVERSAL");
         _createFileIndexInDir(texture_paths.at(index) + OSAL_DIR_SEPARATOR_STR + _ident, update, _identc);
     }
 

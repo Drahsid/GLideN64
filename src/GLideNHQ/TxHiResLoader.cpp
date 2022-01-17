@@ -1,7 +1,6 @@
 #include "TxHiResLoader.h"
 #include "TxDbg.h"
 #include "TxDbg.h"
-#include "Ext_TxFilter.h"
 
 #include <string.h>
 #include <math.h>
